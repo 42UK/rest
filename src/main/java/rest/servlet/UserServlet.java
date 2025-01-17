@@ -17,22 +17,26 @@ import rest.util.MapperUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @WebServlet("/user")
 public class UserServlet extends HttpServlet {
     public static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json;charset=UTF-8";
-    UserMapper userMapper = new UserMapperImpl();
-    Gson gson = new Gson();
-    UserService userService = new UserServiceImpl();
+    UserMapper userMapper;
+    Gson gson;
+    UserService userService;
 
-    public UserServlet() throws SQLException {
+    public UserServlet() {
+        userService = new UserServiceImpl();
+        userMapper = new UserMapperImpl();
+        gson = new Gson();
     }
 
-    public UserServlet(UserService userService) throws SQLException {
+    public UserServlet(UserService userService) {
         this.userService = userService;
+        userMapper = new UserMapperImpl();
+        gson = new Gson();
     }
 
 

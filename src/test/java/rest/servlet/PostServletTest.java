@@ -9,14 +9,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import rest.model.Post;
-import rest.model.User;
 import rest.model.dto.PostDTO;
-import rest.model.dto.UserDTO;
 import rest.service.PostService;
 
 import java.io.*;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,7 +33,7 @@ class PostServletTest {
     private PrintWriter writer;
 
     @BeforeEach
-    void setUp() throws SQLException, IOException {
+    void setUp() throws IOException {
         MockitoAnnotations.initMocks(this);
         postServlet = new PostServlet(postServiceMock);
         requestMock = mock(HttpServletRequest.class);

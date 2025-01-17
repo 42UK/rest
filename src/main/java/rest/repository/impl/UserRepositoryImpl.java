@@ -18,7 +18,7 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
     Connection connection;
     UserMapper userMapper = new UserMapperImpl();
 
-    public UserRepositoryImpl() throws SQLException {
+    public UserRepositoryImpl() {
         ConnectionManager connectionManager = new ConnectionMangerPostgresSQL();
         this.connection = connectionManager.getConnection();
     }

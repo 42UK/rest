@@ -18,7 +18,7 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
     Connection connection;
     PostMapper postMapper = new PostMapperImpl();
 
-    public PostRepositoryImpl() throws SQLException {
+    public PostRepositoryImpl() {
         ConnectionManager connectionManager = new ConnectionMangerPostgresSQL();
         this.connection = connectionManager.getConnection();
     }

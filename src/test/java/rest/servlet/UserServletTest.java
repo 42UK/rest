@@ -13,7 +13,6 @@ import rest.model.dto.UserDTO;
 import rest.service.UserService;
 
 import java.io.*;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class UserServletTest {
     private PrintWriter writer;
 
     @BeforeEach
-    public void setUp() throws SQLException, IOException {
+    public void setUp() throws IOException {
         MockitoAnnotations.openMocks(this);
 
         userServlet = new UserServlet(userServiceMock);

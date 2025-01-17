@@ -8,14 +8,15 @@ import rest.repository.Repository;
 import rest.repository.impl.PostRepositoryImpl;
 import rest.service.PostService;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class PostServiceImpl implements PostService {
-    Repository<PostDTO, Integer> postRepository = new PostRepositoryImpl();
-    PostMapper postMapper = new PostMapperImpl();
+    Repository<PostDTO, Integer> postRepository;
+    PostMapper postMapper;
 
-    public PostServiceImpl() throws SQLException {
+    public PostServiceImpl() {
+        postRepository = new PostRepositoryImpl();
+        postMapper = new PostMapperImpl();
     }
 
     @Override

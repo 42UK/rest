@@ -8,14 +8,15 @@ import rest.repository.Repository;
 import rest.repository.impl.UserRepositoryImpl;
 import rest.service.UserService;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class UserServiceImpl implements UserService {
-    Repository<UserDTO, Integer> userRepository = new UserRepositoryImpl();
-    UserMapper userMapper = new UserMapperImpl();
+    Repository<UserDTO, Integer> userRepository;
+    UserMapper userMapper;
 
-    public UserServiceImpl() throws SQLException {
+    public UserServiceImpl() {
+        userRepository = new UserRepositoryImpl();
+        userMapper = new UserMapperImpl();
     }
 
     @Override

@@ -17,21 +17,25 @@ import rest.util.MapperUtil;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 import java.util.List;
 
 @WebServlet("/post")
 public class PostServlet extends HttpServlet {
     public static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json;charset=UTF-8";
-    PostService postService = new PostServiceImpl();
-    Gson gson = new Gson();
-    PostMapper postMapper = new PostMapperImpl();
+    PostService postService;
+    Gson gson;
+    PostMapper postMapper;
 
-    public PostServlet() throws SQLException {
+    public PostServlet() {
+        postService = new PostServiceImpl();
+        gson = new Gson();
+        postMapper = new PostMapperImpl();
     }
 
-    PostServlet(PostService postService) throws SQLException {
+    PostServlet(PostService postService) {
         this.postService = postService;
+        gson = new Gson();
+        postMapper = new PostMapperImpl();
     }
 
     @Override
