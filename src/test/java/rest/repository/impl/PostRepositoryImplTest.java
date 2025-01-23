@@ -117,7 +117,9 @@ class PostRepositoryImplTest {
         post.setUser(user);
         postRepositoryImpl.save(postMapper.map(post));
         postRepositoryImpl.deleteById(post.getId());
-        assertNull(postRepositoryImpl.findById(post.getId()));
+        PostDTO postDTO = postRepositoryImpl.findById(post.getId());
+        assertNull(postDTO.getTitle());
+        assertNull(postDTO.getContent());
     }
 
     @Test

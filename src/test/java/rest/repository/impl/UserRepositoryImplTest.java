@@ -105,7 +105,9 @@ class UserRepositoryImplTest {
         user.setEmail("johndoe1@example.com");
         userRepositoryImpl.save(userMapper.map(user));
         userRepositoryImpl.deleteById(user.getId());
-        assertNull(userRepositoryImpl.findById(user.getId()));
+        UserDTO userDTO = userRepositoryImpl.findById(user.getId());
+        assertNull(userDTO.getUsername());
+        assertNull(userDTO.getEmail());
     }
 
 

@@ -29,8 +29,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
 
     @Override
     public PostDTO findById(Integer id) {
-        Post post = null;
-        PostDTO postDTO = null;
+        Post post = new Post();
+        PostDTO postDTO = new PostDTO();
         try (PreparedStatement prep = connection.prepareStatement(PostQueries.FIND_POST_BY_ID.getQuery())) {
             prep.setInt(1, id);
             try (ResultSet rs = prep.executeQuery()) {
@@ -44,9 +44,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
         return postDTO;
     }
 

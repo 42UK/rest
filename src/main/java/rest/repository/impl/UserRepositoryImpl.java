@@ -29,8 +29,8 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
 
     @Override
     public UserDTO findById(Integer id) {
-        User user = null;
-        UserDTO userDTO = null;
+        User user = new User();
+        UserDTO userDTO = new UserDTO();
         try (PreparedStatement stmt = connection.prepareStatement(UserQueries.FIND_BY_ID.getQuery())) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -44,7 +44,7 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return userDTO;
     }
