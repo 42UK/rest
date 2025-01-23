@@ -19,6 +19,11 @@ public class UserServiceImpl implements UserService {
         userMapper = new UserMapperImpl();
     }
 
+    public UserServiceImpl(Repository<UserDTO, Integer> userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+    }
+
     @Override
     public UserDTO findById(int i) {
         return userRepository.findById(i);

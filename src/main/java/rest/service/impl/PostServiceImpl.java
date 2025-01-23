@@ -19,6 +19,11 @@ public class PostServiceImpl implements PostService {
         postMapper = new PostMapperImpl();
     }
 
+    public PostServiceImpl(Repository<PostDTO, Integer> postRepository, PostMapper postMapper) {
+        this.postRepository = postRepository;
+        this.postMapper = postMapper;
+    }
+
     @Override
     public PostDTO findById(int i) {
         return postRepository.findById(i);
