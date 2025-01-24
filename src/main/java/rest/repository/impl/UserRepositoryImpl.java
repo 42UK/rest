@@ -64,25 +64,22 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
                 users.add(userMapper.map(user));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return users;
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        if (id > 0) { // чтобы не падало
-            try (PreparedStatement pstmt = connection.prepareStatement(UserQueries.DELETE_USER.getQuery())) {
-                pstmt.setInt(1, id);
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows == 0) {
-                    return false;
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+        boolean result;
+        try (PreparedStatement pstmt = connection.prepareStatement(UserQueries.DELETE_USER.getQuery())) {
+            pstmt.setInt(1, id);
+            int affectedRows = pstmt.executeUpdate();
+            result = affectedRows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        return true;
+        return result;
     }
 
     @Override
@@ -92,7 +89,7 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
             preparedStatement.setString(2, user.getEmail());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -127,7 +124,7 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return posts;
     }

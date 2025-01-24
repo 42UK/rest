@@ -71,18 +71,15 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
 
     @Override
     public boolean deleteById(Integer id) {
-        if (id > 0) { // чтобы не падало
-            try (PreparedStatement pstmt = connection.prepareStatement(PostQueries.DELETE_POST.getQuery())) {
-                pstmt.setInt(1, id);
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows == 0) {
-                    return false;
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+        boolean result;
+        try (PreparedStatement pstmt = connection.prepareStatement(PostQueries.DELETE_POST.getQuery())) {
+            pstmt.setInt(1, id);
+            int affectedRows = pstmt.executeUpdate();
+            result = affectedRows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        return true;
+        return result;
     }
 
 
