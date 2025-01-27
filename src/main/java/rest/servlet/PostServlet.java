@@ -1,7 +1,6 @@
 package rest.servlet;
 
 import com.google.gson.Gson;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,7 +78,7 @@ public class PostServlet extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType(APPLICATION_JSON_CHARSET_UTF_8);
         PrintWriter printWriter = resp.getWriter();
         String idParam = req.getParameter("id");

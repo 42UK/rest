@@ -24,6 +24,13 @@ public class ConnectionMangerPostgresSQL implements ConnectionManager {
         initializeDataSource();
     }
 
+    public ConnectionMangerPostgresSQL(String url, String user, String password) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
+        initializeDataSource();
+    }
+
     private void loadDatabaseConfig() {
         Properties properties = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("database.properties")) {
@@ -55,7 +62,7 @@ public class ConnectionMangerPostgresSQL implements ConnectionManager {
         dataSource = new HikariDataSource(config);
     }
 
-    public Connection getConnection()  {
+    public Connection getConnection() {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {

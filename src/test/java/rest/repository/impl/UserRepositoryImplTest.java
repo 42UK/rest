@@ -1,29 +1,33 @@
 package rest.repository.impl;
 
-import org.junit.jupiter.api.*;
+import org.junit.Assert;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.PostgreSQLContainer;
+import rest.databse.ConnectionManager;
+import rest.databse.impl.ConnectionMangerPostgresSQL;
 import rest.model.User;
 import rest.model.dto.UserDTO;
 import rest.model.mapper.UserMapper;
 import rest.model.mapper.impl.UserMapperImpl;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import static org.junit.Assert.*;
 
 
 @ExtendWith(MockitoExtension.class)
 class UserRepositoryImplTest {
 
     private static PostgreSQLContainer<?> postgreSQLContainer;
+    private ConnectionManager connectionManager;
 
-    private Connection connectionManager;
     private UserRepositoryImpl userRepositoryImpl;
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @BeforeAll
     static void setUp() {
@@ -35,15 +39,15 @@ class UserRepositoryImplTest {
     }
 
     @BeforeEach
-    void setUpUserRepository() throws SQLException {
-        connectionManager = DriverManager.getConnection(
+    void setUpUserRepository() {
+        connectionManager = new ConnectionMangerPostgresSQL(
                 postgreSQLContainer.getJdbcUrl(),
                 postgreSQLContainer.getUsername(),
                 postgreSQLContainer.getPassword());
         userRepositoryImpl = new UserRepositoryImpl(connectionManager);
         userMapper = new UserMapperImpl();
         try {
-            var stmt = connectionManager.createStatement();
+            var stmt = connectionManager.getConnection().createStatement();
             {
                 stmt.execute("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, email VARCHAR(100) NOT NULL UNIQUE);");
                 stmt.execute("CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, title VARCHAR(255), content TEXT, user_id INT REFERENCES users(id));");
@@ -55,12 +59,9 @@ class UserRepositoryImplTest {
 
     @AfterEach
     void tearDown() throws SQLException {
-        try (var stmt = connectionManager.createStatement()) {
+        try (var stmt = connectionManager.getConnection().createStatement()) {
             stmt.execute("DROP TABLE IF EXISTS posts;");
             stmt.execute("DROP TABLE IF EXISTS users;");
-        }
-        if (connectionManager != null) {
-            connectionManager.close();
         }
     }
 
@@ -70,19 +71,19 @@ class UserRepositoryImplTest {
     }
 
     @Test
-    void testCreateUser() throws SQLException {
+    void testCreateUser() {
         User user = new User();
         user.setId(1);
         user.setUsername("johndoe1");
         user.setEmail("johndoe1@example.com");
         userRepositoryImpl.save(userMapper.map(user));
-        assertNotNull(String.valueOf(user.getId()), 1);
+        Assert.assertNotNull(String.valueOf(user.getId()), 1);
         User savedUser = userMapper.map(userRepositoryImpl.findById(user.getId()));
-        assertNotNull(savedUser);
+        Assertions.assertNotNull(savedUser);
     }
 
     @Test
-    void testUpdateUser() throws SQLException {
+    void testUpdateUser() {
         User user = new User();
         user.setId(1);
         user.setUsername("johndoe1");
@@ -92,13 +93,13 @@ class UserRepositoryImplTest {
         user.setEmail("johndoe2@example.com");
         userRepositoryImpl.update(userMapper.map(user));
         User updatedUser = userMapper.map(userRepositoryImpl.findById(user.getId()));
-        assertNotNull(updatedUser);
-        assertEquals("johndoe2", updatedUser.getUsername());
-        assertEquals("johndoe2@example.com", updatedUser.getEmail());
+        Assertions.assertNotNull(updatedUser);
+        Assertions.assertEquals("johndoe2", updatedUser.getUsername());
+        Assertions.assertEquals("johndoe2@example.com", updatedUser.getEmail());
     }
 
     @Test
-    void testDeleteUser() throws SQLException {
+    void testDeleteUser() {
         User user = new User();
         user.setId(1);
         user.setUsername("johndoe1");
@@ -106,13 +107,13 @@ class UserRepositoryImplTest {
         userRepositoryImpl.save(userMapper.map(user));
         userRepositoryImpl.deleteById(user.getId());
         UserDTO userDTO = userRepositoryImpl.findById(user.getId());
-        assertNull(userDTO.getUsername());
-        assertNull(userDTO.getEmail());
+        Assertions.assertNull(userDTO.getUsername());
+        Assertions.assertNull(userDTO.getEmail());
     }
 
 
     @Test
-    void testFindAll() throws SQLException {
+    void testFindAll() {
         for (int i = 0; i < 10; i++) {
             User user = new User();
             user.setId(i);
@@ -120,11 +121,11 @@ class UserRepositoryImplTest {
             user.setEmail("johndoe" + i + "@example.com");
             userRepositoryImpl.save(userMapper.map(user));
         }
-        assertEquals(10, userRepositoryImpl.findAll().size());
+        Assertions.assertEquals(10, userRepositoryImpl.findAll().size());
     }
 
     @Test
-    void testFindById() throws SQLException {
+    void testFindById() {
         for (int i = 1; i < 10; i++) {
             User user = new User();
             user.setId(i);
@@ -132,9 +133,9 @@ class UserRepositoryImplTest {
             user.setEmail("johndoe" + i + "@example.com");
             userRepositoryImpl.save(userMapper.map(user));
         }
-        assertEquals(9, userRepositoryImpl.findAll().size());
+        Assertions.assertEquals(9, userRepositoryImpl.findAll().size());
         UserDTO userDTO = userRepositoryImpl.findById(1);
-        assertNotNull(userDTO);
-        assertEquals("johndoe1", userDTO.getUsername());
+        Assertions.assertNotNull(userDTO);
+        Assertions.assertEquals("johndoe1", userDTO.getUsername());
     }
 }

@@ -15,23 +15,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
-    Connection connection;
-    UserMapper userMapper = new UserMapperImpl();
+    private final UserMapper userMapper;
+    private final ConnectionManager connectionManager;
 
     public UserRepositoryImpl() {
-        ConnectionManager connectionManager = new ConnectionMangerPostgresSQL();
-        this.connection = connectionManager.getConnection();
+        connectionManager = new ConnectionMangerPostgresSQL();
+        userMapper = new UserMapperImpl();
     }
 
-    public UserRepositoryImpl(Connection connectionManager) {
-        this.connection = connectionManager;
+    public UserRepositoryImpl(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+        userMapper = new UserMapperImpl();
     }
 
     @Override
     public UserDTO findById(Integer id) {
-        User user = new User();
+        User user;
         UserDTO userDTO = new UserDTO();
-        try (PreparedStatement stmt = connection.prepareStatement(UserQueries.FIND_BY_ID.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(UserQueries.FIND_BY_ID.getQuery())) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -53,7 +55,8 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
     public List<UserDTO> findAll() {
         List<UserDTO> users = new ArrayList<>();
         String sql = UserQueries.FIND_ALL.getQuery();
-        try (Statement stmt = connection.createStatement();
+        try (Connection connection = connectionManager.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             User user = new User();
             while (rs.next()) {
@@ -72,7 +75,8 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
     @Override
     public boolean deleteById(Integer id) {
         boolean result;
-        try (PreparedStatement pstmt = connection.prepareStatement(UserQueries.DELETE_USER.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UserQueries.DELETE_USER.getQuery())) {
             pstmt.setInt(1, id);
             int affectedRows = pstmt.executeUpdate();
             result = affectedRows > 0;
@@ -84,7 +88,8 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
 
     @Override
     public void save(UserDTO user) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(UserQueries.INSERT_USER.getQuery(), Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(UserQueries.INSERT_USER.getQuery(), Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, user.getUsername());
             preparedStatement.setString(2, user.getEmail());
             preparedStatement.executeUpdate();
@@ -95,7 +100,8 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
 
     @Override
     public boolean update(UserDTO user) {
-        try (PreparedStatement stmt = connection.prepareStatement(UserQueries.UPDATE_USER.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(UserQueries.UPDATE_USER.getQuery())) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setInt(3, user.getId());
@@ -108,7 +114,8 @@ public class UserRepositoryImpl implements Repository<UserDTO, Integer> {
 
     private List<Post> getPostsByUserId(Integer id) {
         List<Post> posts = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(UserQueries.FIND_POSTS_BY_USER_ID.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(UserQueries.FIND_POSTS_BY_USER_ID.getQuery())) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

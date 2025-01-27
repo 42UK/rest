@@ -1,25 +1,30 @@
 package rest.repository.impl;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
+import rest.databse.ConnectionManager;
+import rest.databse.impl.ConnectionMangerPostgresSQL;
 import rest.model.Post;
 import rest.model.User;
 import rest.model.dto.PostDTO;
 import rest.model.mapper.PostMapper;
 import rest.model.mapper.impl.PostMapperImpl;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PostRepositoryImplTest {
     private static PostgreSQLContainer<?> postgreSQLContainer;
+    private ConnectionManager connectionManager;
 
-    private Connection connectionManager;
-    private PostRepositoryImpl postRepositoryImpl;
-    PostMapper postMapper;
+    private PostRepositoryImpl postRepository;
+    private PostMapper postMapper;
 
     @BeforeAll
     static void setUp() {
@@ -31,16 +36,15 @@ class PostRepositoryImplTest {
     }
 
     @BeforeEach
-    void setUpUserRepository() throws SQLException {
-        connectionManager = DriverManager.getConnection(
+    void setUpUserRepository() {
+        connectionManager = new ConnectionMangerPostgresSQL(
                 postgreSQLContainer.getJdbcUrl(),
                 postgreSQLContainer.getUsername(),
-                postgreSQLContainer.getPassword()
-        );
-        postRepositoryImpl = new PostRepositoryImpl(connectionManager);
+                postgreSQLContainer.getPassword());
+        postRepository = new PostRepositoryImpl(connectionManager);
         postMapper = new PostMapperImpl();
         try {
-            var stmt = connectionManager.createStatement();
+            var stmt = connectionManager.getConnection().createStatement();
             {
                 stmt.execute("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, email VARCHAR(100) NOT NULL UNIQUE);");
                 stmt.execute("CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, title VARCHAR(255), content TEXT, user_id INT REFERENCES users(id));");
@@ -53,13 +57,9 @@ class PostRepositoryImplTest {
 
     @AfterEach
     void tearDown() throws SQLException {
-        try (var stmt = connectionManager.createStatement()) {
+        try (var stmt = connectionManager.getConnection().createStatement()) {
             stmt.execute("DROP TABLE IF EXISTS posts;");
             stmt.execute("DROP TABLE IF EXISTS users;");
-        }
-
-        if (connectionManager != null) {
-            connectionManager.close();
         }
     }
 
@@ -69,7 +69,7 @@ class PostRepositoryImplTest {
     }
 
     @Test
-    void testCreatePost() throws SQLException {
+    void testCreatePost() {
         Post post = new Post();
         post.setId(1);
         post.setTitle("undo");
@@ -79,13 +79,13 @@ class PostRepositoryImplTest {
         user.setUsername("test");
         user.setEmail("test@test.ru");
         post.setUser(user);
-        postRepositoryImpl.save(postMapper.map(post));
-        Post savedPost = postMapper.map(postRepositoryImpl.findById(post.getId()));
-        assertNotNull(savedPost);
+        postRepository.save(postMapper.map(post));
+        Post savedPost = postMapper.map(postRepository.findById(post.getId()));
+        Assertions.assertNotNull(savedPost);
     }
 
     @Test
-    void testUpdatePost() throws SQLException {
+    void testUpdatePost() {
         Post post = new Post();
         post.setId(1);
         post.setTitle("undo");
@@ -95,17 +95,17 @@ class PostRepositoryImplTest {
         user.setUsername("test");
         user.setEmail("test@test.ru");
         post.setUser(user);
-        postRepositoryImpl.save(postMapper.map(post));
+        postRepository.save(postMapper.map(post));
         post.setTitle("undo1");
         post.setContent("redp1");
-        postRepositoryImpl.update(postMapper.map(post));
-        PostDTO postDTO = postRepositoryImpl.findById(post.getId());
+        postRepository.update(postMapper.map(post));
+        PostDTO postDTO = postRepository.findById(post.getId());
         assertEquals("undo1", postDTO.getTitle());
         assertEquals("redp1", postDTO.getContent());
     }
 
     @Test
-    void testDeletePost() throws SQLException {
+    void testDeletePost() {
         Post post = new Post();
         post.setId(1);
         post.setTitle("undo");
@@ -115,15 +115,15 @@ class PostRepositoryImplTest {
         user.setUsername("test");
         user.setEmail("test@test.ru");
         post.setUser(user);
-        postRepositoryImpl.save(postMapper.map(post));
-        postRepositoryImpl.deleteById(post.getId());
-        PostDTO postDTO = postRepositoryImpl.findById(post.getId());
-        assertNull(postDTO.getTitle());
-        assertNull(postDTO.getContent());
+        postRepository.save(postMapper.map(post));
+        postRepository.deleteById(post.getId());
+        PostDTO postDTO = postRepository.findById(post.getId());
+        Assertions.assertNull(postDTO.getTitle());
+        Assertions.assertNull(postDTO.getContent());
     }
 
     @Test
-    void testFindAllPosts() throws SQLException {
+    void testFindAllPosts() {
         User user = new User();
         user.setId(1);
         user.setUsername("test");
@@ -134,13 +134,13 @@ class PostRepositoryImplTest {
             post.setTitle("undo" + i);
             post.setContent("redp" + i);
             post.setUser(user);
-            postRepositoryImpl.save(postMapper.map(post));
+            postRepository.save(postMapper.map(post));
         }
-        assertEquals(10, postRepositoryImpl.findAll().size());
+        assertEquals(10, postRepository.findAll().size());
     }
 
     @Test
-    void testFindPostById() throws SQLException {
+    void testFindPostById() {
         User user = new User();
         user.setId(1);
         user.setUsername("test");
@@ -151,11 +151,11 @@ class PostRepositoryImplTest {
             post.setTitle("undo" + i);
             post.setContent("redp" + i);
             post.setUser(user);
-            postRepositoryImpl.save(postMapper.map(post));
+            postRepository.save(postMapper.map(post));
         }
-        assertEquals(9, postRepositoryImpl.findAll().size());
-        PostDTO postDTO = postRepositoryImpl.findById(1);
-        assertNotNull(postDTO);
+        assertEquals(9, postRepository.findAll().size());
+        PostDTO postDTO = postRepository.findById(1);
+        Assertions.assertNotNull(postDTO);
         assertEquals("undo1", postDTO.getTitle());
     }
 

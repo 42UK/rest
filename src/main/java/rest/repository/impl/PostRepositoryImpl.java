@@ -10,28 +10,34 @@ import rest.model.mapper.PostMapper;
 import rest.model.mapper.impl.PostMapperImpl;
 import rest.repository.Repository;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
-    Connection connection;
-    PostMapper postMapper = new PostMapperImpl();
+    private final PostMapper postMapper;
+    private final ConnectionManager connectionManager;
 
     public PostRepositoryImpl() {
-        ConnectionManager connectionManager = new ConnectionMangerPostgresSQL();
-        this.connection = connectionManager.getConnection();
+        connectionManager = new ConnectionMangerPostgresSQL();
+        postMapper = new PostMapperImpl();
     }
 
-    public PostRepositoryImpl(Connection connectionManager) {
-        this.connection = connectionManager;
+    public PostRepositoryImpl(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+        postMapper = new PostMapperImpl();
     }
 
     @Override
     public PostDTO findById(Integer id) {
-        Post post = new Post();
+        Post post;
         PostDTO postDTO = new PostDTO();
-        try (PreparedStatement prep = connection.prepareStatement(PostQueries.FIND_POST_BY_ID.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement prep = connection.prepareStatement(PostQueries.FIND_POST_BY_ID.getQuery())) {
             prep.setInt(1, id);
             try (ResultSet rs = prep.executeQuery()) {
                 if (rs.next()) {
@@ -53,7 +59,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
     public List<PostDTO> findAll() {
         List<PostDTO> posts = new ArrayList<>();
         String sql = PostQueries.FIND_ALL.getQuery();
-        try (Statement stmt = connection.createStatement();
+        try (Connection connection = connectionManager.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             Post post = new Post();
             while (rs.next()) {
@@ -72,7 +79,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
     @Override
     public boolean deleteById(Integer id) {
         boolean result;
-        try (PreparedStatement pstmt = connection.prepareStatement(PostQueries.DELETE_POST.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(PostQueries.DELETE_POST.getQuery())) {
             pstmt.setInt(1, id);
             int affectedRows = pstmt.executeUpdate();
             result = affectedRows > 0;
@@ -85,7 +93,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
 
     @Override
     public void save(PostDTO postDTO) {
-        try (PreparedStatement prep = connection.prepareStatement(PostQueries.INSERT_POST.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement prep = connection.prepareStatement(PostQueries.INSERT_POST.getQuery())) {
             prep.setString(1, postDTO.getTitle());
             prep.setString(2, postDTO.getContent());
             prep.setInt(3, postDTO.getUser().getId());
@@ -97,7 +106,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
 
     @Override
     public boolean update(PostDTO postDTO) {
-        try (PreparedStatement stmt = connection.prepareStatement(PostQueries.UPDATE_POST.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(PostQueries.UPDATE_POST.getQuery())) {
             stmt.setString(1, postDTO.getTitle());
             stmt.setString(2, postDTO.getContent());
             stmt.setInt(3, postDTO.getId());
@@ -110,7 +120,8 @@ public class PostRepositoryImpl implements Repository<PostDTO, Integer> {
 
     private User getUserById(Integer id) {
         User user = new User();
-        try (PreparedStatement prep = connection.prepareStatement(PostQueries.FIND_USER_BY_POST_ID.getQuery())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement prep = connection.prepareStatement(PostQueries.FIND_USER_BY_POST_ID.getQuery())) {
             prep.setInt(1, id);
             try (ResultSet rs = prep.executeQuery()) {
                 if (rs.next()) {
